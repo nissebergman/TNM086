@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "geode": "cpp",
+        "texture2d": "cpp",
+        "stateset": "cpp",
+        "camera": "cpp",
+        "shape": "cpp",
+        "stateattribute": "cpp",
+        "referenced": "cpp",
+        "geometry": "cpp",
+        "simplifier": "cpp",
+        "shapedrawable": "cpp",
+        "lightsource": "cpp",
+        "vec3f": "cpp"
+    }
+}

@@ -1,5 +1,7 @@
 #include <osg/Version>
 
+
+#include <osgUtil/Optimizer>
 #include <osg/Node>
 #include <osg/Program>
 #include <osgDB/ReadFile>
@@ -13,40 +15,21 @@
 #include <osg/StateAttribute>
 #include <osg/Math>
 
-
 int main(int argc, char *argv[]){
-  
+    
   // New group
   
   osg::ref_ptr<osg::Group> root = new osg::Group;
 
-  osg::ref_ptr<osg::StateSet> state = root->getOrCreateStateSet();
-  state->setMode( GL_LIGHTING,
-    osg::StateAttribute::ON |
-    osg::StateAttribute::PROTECTED);
-  state->setMode(GL_LIGHT0, osg::StateAttribute::ON);
-  state->setMode(GL_LIGHT1, osg::StateAttribute::ON);
-
+  
   osg::ref_ptr<osg::Light> light1 = new osg::Light;
   light1->setLightNum(0);
   light1->setAmbient(osg::Vec4(.0f, 1.f, .0f,1.f));
   light1->setPosition(osg::Vec4(500,800,1000,1));
   
-  osg::ref_ptr<osg::LightSource> ls1 = new osg::LightSource;
-  ls1->setLight(light1.get());
-
-  root->addChild(ls1);
-
-
-  osg::ref_ptr<osg::Light> light2 = new osg::Light;
-  light2->setLightNum(1);
-  light2->setAmbient(osg::Vec4(.0f, .0f, 1.f,1.f));
-  
-  osg::ref_ptr<osg::LightSource> ls2 = new osg::LightSource;
-  ls2->setLight(light2.get());
-  root->addChild(ls2);
   // Line
 
+  /*
   osg::Vec3 line_p0 (-300, 0, 0);
   osg::Vec3 line_p1 ( 300, 0, 0);
   
@@ -68,59 +51,28 @@ int main(int argc, char *argv[]){
   lineGeode->getOrCreateStateSet()->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
   
   root->addChild(lineGeode);
-
+*/
 
   
   // Add your stuff to the root node here...
 
-  // Set texture to heightfield
-  osg::ref_ptr<osg::Texture2D> groundTexture = new osg::Texture2D(osgDB::readImageFile("ground.png"));
 
-  // Set wrapping
-  groundTexture->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-  groundTexture->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-
-  osg::ref_ptr<osg::HeightField> ground = new osg::HeightField;
-  
-  unsigned int rows = 256;
-  unsigned int cols = 256;
-  double sizeX = 10.0;
-  double sizeY = 10.0;
-  osg::Vec3 origin (0,-3,-3);
-  
-  ground->allocate(rows,cols);
+  //Create heightfield
+  osg::ref_ptr<osg::HeightField> ground = new osg::HeightField(); 
+  //Allocate and set interval
+  ground->allocate(256,256);
   ground->setXInterval(5.0f);
   ground->setYInterval(5.0f);
-  //ground->setHeight(0.5f,0.5f,0.5f);
 
-  for (int i = 0; i < rows-10; ++i) {
-    for (int j = 0; j < cols-10; ++j) {
-      double ix = double(j)/double(rows-1);
-      double iy = double(i)/double(cols-1);
-
-      ground->setHeight(j,i, osg::absolute(50*sin(ix*iy*4*osg::PI)));
+  //simple ground
+  for(int x = 0; x < ground->getNumRows(); x++) {
+    for(int y = 0; y < ground->getNumColumns(); y++) {
+        ground->setHeight(x,y, cos(x)+sin(y));
     }
   }
-/*
-  for (int i = rows-10; i < rows; ++i) {
-    for (int j = cols-10; j < cols; ++j) {
-      double ix = double(j)/double(rows-1);
-      double iy = double(i)/double(cols-1);
-
-      ground->setHeight(j,i, osg:)
-    }
-  }
-*/
-  osg::ref_ptr<osg::Geode> groundGeode = new osg::Geode();
-  groundGeode->addDrawable(new osg::ShapeDrawable(ground));
-  osg::ref_ptr<osg::StateSet> groundState = groundGeode->getOrCreateStateSet();
-  groundState->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
-  groundState->setTextureAttributeAndModes(0, groundTexture);
-
-  // Sphere for reference
-  osg::ref_ptr<osg::Geode> sphere = new osg::Geode();
-  osg::TessellationHints* hints = new osg::TessellationHints;
-  sphere->addDrawable(new osg::ShapeDrawable(new osg::Sphere(osg::Vec3(0.0f,0.0f,0.0f),30.0f),hints));
+  osg::ref_ptr<osg::Geode> geoGround = new osg::Geode();
+  geoGround->addDrawable(new osg::ShapeDrawable(ground));
+  root->addChild(geoGround);
 
   // Loading Cessna airplane
 
@@ -155,8 +107,6 @@ int main(int argc, char *argv[]){
   root->addChild(airplaneTransform);
   //root->addChild(spaceshipTransform);
   root->addChild(airplaneLOD);
-  root->addChild(sphere);
-  root->addChild(groundGeode);
 
   // Optimizes the scene-graph
   //osgUtil::Optimizer optimizer;
@@ -175,9 +125,15 @@ int main(int argc, char *argv[]){
   camera->getOrCreateStateSet()->setGlobalDefaults();
 
   viewer.setCamera(camera);
+  
+  // Optimizes the scene-graph
+  osgUtil::Optimizer optimizer;
+  optimizer.optimize(root);
 
   //Setting clear color
   viewer.getCamera()->setClearColor(osg::Vec4(0.6,0.,0.,1.));
+  
+  
 
   return viewer.run();
 }

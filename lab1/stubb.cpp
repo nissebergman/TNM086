@@ -14,6 +14,7 @@
 #include <osgDB/ReadFile>
 #include <osg/StateAttribute>
 #include <osg/Math>
+#include <osg/CopyOp>
 
 int main(int argc, char *argv[]){
     
@@ -77,36 +78,39 @@ int main(int argc, char *argv[]){
   // Loading Cessna airplane
 
   osg::ref_ptr<osg::Node> airplane = osgDB::readNodeFile( "cessna.osg" );
-  osgUtil::Simplifier simplifier(20);
-  airplane->accept(simplifier);
   osg::ref_ptr<osg::PositionAttitudeTransform> airplaneTransform = new osg::PositionAttitudeTransform();
   airplaneTransform->setScale(osg::Vec3(10,10,10));
   airplaneTransform->setPosition(osg::Vec3(500,0,800));
   airplaneTransform->addChild(airplane);
 
-  // Loading Cessna airplane
+  // Loading spaceship
 
   osg::ref_ptr<osg::Node> spaceship = osgDB::readNodeFile( "spaceship.osg" );
+  osg::ref_ptr<osg::Node> spaceshipLowerQual = (osg::Node*)spaceship->clone(osg::CopyOp::DEEP_COPY_ALL);
+  osgUtil::Simplifier simplify;
+  simplify.setSampleRatio(0.5f);
+  spaceshipLowerQual->accept(simplify);
+  osg::ref_ptr<osg::Node> spaceshipLowestQual = (osg::Node*)spaceship->clone(osg::CopyOp::DEEP_COPY_ALL);
+  simplify.setSampleRatio(.01f);
+  spaceshipLowestQual->accept(simplify);
+
+  // Doing LOD-stuff
+  osg::ref_ptr<osg::LOD> spaceshipLOD = new osg::LOD;
+  spaceshipLOD->addChild(spaceship, 0.f, 100.f); //Full quality model
+  spaceshipLOD->addChild(spaceshipLowerQual, 100.f, 500.f);
+  spaceshipLOD->addChild(spaceshipLowestQual,500.f,10000.f);
+
+
   osg::ref_ptr<osg::PositionAttitudeTransform> spaceshipTransform = new osg::PositionAttitudeTransform();
   spaceshipTransform->setScale(osg::Vec3(10,10,10));
-  spaceshipTransform->setPosition(osg::Vec3(500,800,30));
-  spaceshipTransform->addChild(spaceship);
+  spaceshipTransform->setPosition(osg::Vec3(500,100,100));
+  spaceshipTransform->addChild(spaceshipLOD);
 
   // Simplifying models
 
 
-  // Doing LOD-stuff
-
-  osg::ref_ptr<osg::LOD> airplaneLOD = new osg::LOD;
-  airplaneLOD->addChild(spaceshipTransform, 0.f, 1000.f);
 
 
-
-
-  // Adding elements to root
-  root->addChild(airplaneTransform);
-  //root->addChild(spaceshipTransform);
-  root->addChild(airplaneLOD);
 
   // Optimizes the scene-graph
   //osgUtil::Optimizer optimizer;

@@ -1,0 +1,30 @@
+{
+    "files.associations": {
+        "applicationusage": "cpp",
+        "argumentparser": "cpp",
+        "billboard": "cpp",
+        "boundingbox": "cpp",
+        "computeboundsvisitor": "cpp",
+        "geode": "cpp",
+        "graphicscontext": "cpp",
+        "image": "cpp",
+        "lod": "cpp",
+        "lightsource": "cpp",
+        "linewidth": "cpp",
+        "material": "cpp",
+        "matrixtransform": "cpp",
+        "node": "cpp",
+        "nodevisitor": "cpp",
+        "notify": "cpp",
+        "occludernode": "cpp",
+        "polytope": "cpp",
+        "projection": "cpp",
+        "scriptengine": "cpp",
+        "stateattribute": "cpp",
+        "switch": "cpp",
+        "transform": "cpp",
+        "vec4": "cpp",
+        "view": "cpp",
+        "ref_ptr": "cpp"
+    }
+}

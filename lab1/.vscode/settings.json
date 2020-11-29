@@ -11,6 +11,15 @@
         "simplifier": "cpp",
         "shapedrawable": "cpp",
         "lightsource": "cpp",
-        "vec3f": "cpp"
+        "vec3f": "cpp",
+        "positionattitudetransform": "cpp",
+        "group": "cpp",
+        "copyop": "cpp",
+        "iostream": "cpp",
+        "node": "cpp",
+        "light": "cpp",
+        "ref_ptr": "cpp",
+        "vec4f": "cpp",
+        "animationpath": "cpp"
     }
 }

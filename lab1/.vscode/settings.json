@@ -20,6 +20,7 @@
         "light": "cpp",
         "ref_ptr": "cpp",
         "vec4f": "cpp",
-        "animationpath": "cpp"
+        "animationpath": "cpp",
+        "linesegmentintersector": "cpp"
     }
 }

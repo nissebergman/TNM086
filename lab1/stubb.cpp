@@ -205,19 +205,6 @@ int main(int argc, char *argv[]){
   root->addChild(spaceshipTransform);
   root->addChild(groundGeode);
 
-  //Set up line intersection
-/*
-  osg::ref_ptr<osgUtil::LineSegmentIntersector> intersector = new osgUtil::LineSegmentIntersector(line_p0, line_p1);
-  osgUtil::IntersectionVisitor iv(intersector.get());
-
-  osg::NodeCallback
-*/
-  //Skapa klass överst i filen, extenda node callback. Root ska gå in som *node.
-
-  // Set node callback function
-
-  //root->accept();
-  
   // Optimizes the scene-graph
   osgUtil::Optimizer optimizer;
   optimizer.optimize(root);

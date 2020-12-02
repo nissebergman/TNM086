@@ -1,5 +1,6 @@
 
 #include "MyApp.hh"
+#include <iostream>
 
 #include <gmCore/TimeTools.hh>
 #include <gmCore/FileResolver.hh>
@@ -18,10 +19,11 @@
 #include <osg/LineWidth>
 #include <osg/Material>
 #include <osg/PositionAttitudeTransform>
-#include <osg/IntersectionVisitor>
-#include <osg/LineSegmentIntersector>
+#include <osgUtil/IntersectionVisitor>
+#include <osgUtil/LineSegmentIntersector>
 
 #include <osg/ComputeBoundsVisitor>
+#include <osg/io_utils>
 
 #include <filesystem>
 
@@ -32,9 +34,35 @@ using namespace gramods;
 typedef gmNetwork::SyncSData<Eigen::Vector3f> SyncSVec;
 typedef gmNetwork::SyncSData<Eigen::Quaternionf> SyncSQuat;
 
+osg::ref_ptr<osg::Geometry> geometry;
+osg::Vec3d wand_start;
+osg::Vec3d wand_end;
+
+class IntersectionCallback : public osg::NodeCallback {
+  public:
+    virtual void operator() ( osg::Node* node, osg::NodeVisitor* nodeVisit ) {
+      std::cout << "HERE!";
+      osg::ref_ptr<osgUtil::LineSegmentIntersector> intersector = 
+      new osgUtil::LineSegmentIntersector(wand_start, wand_end);
+      osgUtil::IntersectionVisitor visitor (intersector.get());
+      node->accept(visitor);
+
+      // För att komma åt > 1 objekt, använd nodepath. Task4 labb2.
+      
+      if(intersector->containsIntersections()) {
+        std::cout << "Intersect!";
+      }
+      else{
+        std::cout << "No intersect!";
+      }
+      traverse(node, nodeVisit);
+    }
+};
+
 /**
  * Definition of the internal code of MyApp
  */
+
 struct MyApp::Impl {
   Impl(std::vector<std::shared_ptr<gmNetwork::SyncNode>> sync_nodes,
        std::vector<std::shared_ptr<gmTrack::Controller>> controllers,
@@ -106,6 +134,10 @@ struct MyApp::Impl {
 
   osg::ref_ptr<osg::Group> scenegraph_root = new osg::Group;
   osg::ref_ptr<osg::MatrixTransform> wand_transform = new osg::MatrixTransform;
+
+  //scenegraph_root->setUpdateCallback(new IntersectionCallback);
+
+
 };
 
 
@@ -235,6 +267,9 @@ void MyApp::Impl::update_data(gmCore::Updateable::clock::time_point time) {
     }
   }
 
+
+
+
   if (!wand)
     // Only wand stuff below this point, so terminate early if we do
     // not have a wand
@@ -292,6 +327,11 @@ void MyApp::Impl::update_states(gmCore::Updateable::clock::time_point time) {
   wand_transform->setMatrix(osg::Matrix::rotate(oQ) *
                             osg::Matrix::translate(oP));
 
+  osg::Vec3d wand_start = oP;
+  osg::Vec3d wand_end = oP + oQ * osg::Vec3(0,0,-1);
+
+  //std::cout<<"read/writeVec3() ["<<oP<<"]"<<std::endl;
+
   double R = 0.4, G = 0.4, B = 0.4;
   if (*sync_main_button) R = 0.8;
   if (*sync_second_button) G = 0.8;
@@ -314,7 +354,11 @@ void MyApp::Impl::initOSG() {
     osg::ref_ptr<osg::Node> wand_node = createWand();
     wand_transform->addChild(wand_node);
     scenegraph_root->addChild(wand_transform);
+      scenegraph_root->setUpdateCallback(new IntersectionCallback);
+
   }
+
+
 
   // Loading models cessna and dumptruck
   osg::ref_ptr<osg::Node> cessna = osgDB::readNodeFile( "cessna.osg" );
@@ -377,10 +421,10 @@ void MyApp::Impl::initOSG() {
       GL_CULL_FACE, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 }
 
+
 osg::ref_ptr<osg::Node> MyApp::Impl::createWand() {
 
   osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry;
-
   osg::ref_ptr<osg::LineWidth> lineWidth = new osg::LineWidth();
   lineWidth->setWidth(4);
   geometry->getOrCreateStateSet()->setAttributeAndModes(

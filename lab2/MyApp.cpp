@@ -18,6 +18,8 @@
 #include <osg/LineWidth>
 #include <osg/Material>
 #include <osg/PositionAttitudeTransform>
+#include <osg/IntersectionVisitor>
+#include <osg/LineSegmentIntersector>
 
 #include <osg/ComputeBoundsVisitor>
 

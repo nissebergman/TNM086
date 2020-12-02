@@ -16,6 +16,7 @@
 #include <osg/AnimationPath>
 #include <osgUtil/IntersectionVisitor>
 #include <osgUtil/LineSegmentIntersector>
+#include <osg/io_utils>
 
 osg::ref_ptr<osg::LightSource> ls1 = new osg::LightSource();
 osg::ref_ptr<osg::LightSource> ls2 = new osg::LightSource();
@@ -206,6 +207,16 @@ int main(int argc, char *argv[]){
   root->addChild(airplaneTransform);
   root->addChild(spaceshipTransform);
   root->addChild(groundGeode);
+
+  osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry;
+  osg::Vec3Array *vert = new osg::Vec3Array;
+  vert->push_back(osg::Vec3d(0,0,0));
+  vert->push_back(osg::Vec3d(0,0,-1000));
+  geometry->setVertexArray(vert);
+  osg::Array *ret = geometry->getVertexArray();
+  std::cout << ret->getDataPointer();
+
+
 
   // Optimizes the scene-graph
   osgUtil::Optimizer optimizer;

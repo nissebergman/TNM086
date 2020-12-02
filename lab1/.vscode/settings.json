@@ -21,6 +21,7 @@
         "ref_ptr": "cpp",
         "vec4f": "cpp",
         "animationpath": "cpp",
-        "linesegmentintersector": "cpp"
+        "linesegmentintersector": "cpp",
+        "vec3d": "cpp"
     }
 }

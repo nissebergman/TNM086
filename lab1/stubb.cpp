@@ -34,6 +34,8 @@ class IntersectionCallback : public osg::NodeCallback {
           osgUtil::IntersectionVisitor visitor (lineIntersector.get());
           node->accept(visitor);
 
+          // För att komma åt > 1 objekt, använd nodepath. Task4 labb2.
+
           if(lineIntersector->containsIntersections()) {
             ls1->getLight()->setAmbient( osg::Vec4(1.f, 0.f, 0.f, 1) ); 
             ls2->getLight()->setAmbient( osg::Vec4(0.f, 1.f, 0.f, 1) );

@@ -34,30 +34,56 @@ using namespace gramods;
 typedef gmNetwork::SyncSData<Eigen::Vector3f> SyncSVec;
 typedef gmNetwork::SyncSData<Eigen::Quaternionf> SyncSQuat;
 
+osg::ref_ptr<osg::Node> truck;
+osg::ref_ptr<osg::Node> cessna;
+osg::ref_ptr<osg::Node> intersectedNode;
 osg::ref_ptr<osg::Geometry> geometry;
 osg::Vec3d wand_start;
 osg::Vec3d wand_end;
+osg::ref_ptr<osg::MatrixTransform> sceneTransform;
 
 class IntersectionCallback : public osg::NodeCallback {
   public:
     virtual void operator() ( osg::Node* node, osg::NodeVisitor* nodeVisit ) {
-      std::cout << "HERE!";
       osg::ref_ptr<osgUtil::LineSegmentIntersector> intersector = 
       new osgUtil::LineSegmentIntersector(wand_start, wand_end);
-      osgUtil::IntersectionVisitor visitor (intersector.get());
+
+      osgUtil::IntersectionVisitor visitor;
+      visitor.setIntersector(intersector);
       node->accept(visitor);
 
       // För att komma åt > 1 objekt, använd nodepath. Task4 labb2.
+
+      osg::ref_ptr<osg::Material> mat = new osg::Material;
+      mat->setAmbient (osg::Material::FRONT_AND_BACK, osg::Vec4(1, 1, 0, 1.0));
+      mat->setDiffuse (osg::Material::FRONT_AND_BACK, osg::Vec4(1, 1, 0, 1.0));
       
       if(intersector->containsIntersections()) {
-        std::cout << "Intersect!";
+        osgUtil::LineSegmentIntersector::Intersection intersectorInfo = intersector->getFirstIntersection();
+        osg::NodePath nodePath = intersectorInfo.nodePath;
+        for (osg::NodePath::iterator it = nodePath.begin(); it != nodePath.end();++it){
+          if(*it == truck || *it == cessna){
+            intersectedNode = *it;
+            intersectedNode->getOrCreateStateSet()->setAttributeAndModes(mat, osg::StateAttribute::OVERRIDE);
+          }
+        } 
+        //std::cout << "INTERSECT!";
       }
-      else{
-        std::cout << "No intersect!";
-      }
+      else if(!intersector->containsIntersections()){
+        cessna->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
+        truck->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
+      } 
+
+
+
+
+
       traverse(node, nodeVisit);
-    }
+    
+   }
+    
 };
+
 
 /**
  * Definition of the internal code of MyApp
@@ -313,6 +339,9 @@ std::shared_ptr<gmGraphics::OsgRenderer> MyApp::Impl::getRenderer() {
 
 void MyApp::Impl::update_states(gmCore::Updateable::clock::time_point time) {
 
+  bool pointerMode = false;
+  bool crosshairMode = true;
+
   if (!wand_transform)
     // Cannot update wand transform since we have no wand transform
     return;
@@ -323,20 +352,41 @@ void MyApp::Impl::update_states(gmCore::Updateable::clock::time_point time) {
   osg::Vec3 oP(eP.x(), eP.y(), eP.z());
   osg::Quat oQ(eQ.x(), eQ.y(), eQ.z(), eQ.w());
 
+  Eigen::Vector3f eHP = *sync_head_position;
+  Eigen::Quaternionf eHQ = *sync_head_orientation;
+
+  osg::Vec3 oHP(eHP.x(), eHP.y(), eHP.z());
+  osg::Quat oHQ(eHQ.x(), eHQ.y(), eHQ.z(), eHQ.w());
+
   // Order because OSG uses row vectors: first rotate, then translate
   wand_transform->setMatrix(osg::Matrix::rotate(oQ) *
                             osg::Matrix::translate(oP));
 
-  osg::Vec3d wand_start = oP;
-  osg::Vec3d wand_end = oP + oQ * osg::Vec3(0,0,-1);
+  osg::Vec3d head_start;
+  head_start = oHP;
+  wand_start = oP;
+  wand_end = oQ * osg::Vec3d(0,0,-1);
 
-  //std::cout<<"read/writeVec3() ["<<oP<<"]"<<std::endl;
+  //std::cout<<"read/writeVec3d() ["<<wand_end<<"]"<<std::endl;
 
   double R = 0.4, G = 0.4, B = 0.4;
   if (*sync_main_button) R = 0.8;
   if (*sync_second_button) G = 0.8;
   if (*sync_menu_button) B = 0.8;
   wand_material->setEmission(osg::Material::FRONT_AND_BACK, osg::Vec4(R, G, B, 1.0));
+
+  float speedFactor = 0.01;
+
+  if (pointerMode){
+    sceneTransform->postMult(osg::Matrix::translate(-wand_end*speedFactor));
+  }
+  if (crosshairMode){
+    osg::Vec3d crosshair = (head_start - wand_start);
+    crosshair.normalize();
+    sceneTransform->postMult(osg::Matrix::translate(-crosshair*speedFactor));
+  } 
+
+  scenegraph_root->setUpdateCallback(new IntersectionCallback);
 
 }
 
@@ -354,30 +404,30 @@ void MyApp::Impl::initOSG() {
     osg::ref_ptr<osg::Node> wand_node = createWand();
     wand_transform->addChild(wand_node);
     scenegraph_root->addChild(wand_transform);
-      scenegraph_root->setUpdateCallback(new IntersectionCallback);
-
   }
 
-
+  sceneTransform = new osg::MatrixTransform();
+  scenegraph_root->addChild(sceneTransform);
 
   // Loading models cessna and dumptruck
-  osg::ref_ptr<osg::Node> cessna = osgDB::readNodeFile( "cessna.osg" );
+
+  cessna = osgDB::readNodeFile( "cessna.osg" );
   osg::ref_ptr<osg::MatrixTransform> cessna_transform = new osg::MatrixTransform();
-  scenegraph_root->addChild(cessna_transform);
+  sceneTransform->addChild(cessna_transform);
   cessna_transform->addChild(cessna);
 
-  osg::ref_ptr<osg::Node> truck = osgDB::readNodeFile( "dumptruck.osg" );
+  truck = osgDB::readNodeFile( "dumptruck.osg" );
   osg::ref_ptr<osg::MatrixTransform> truck_transform = new osg::MatrixTransform();
-  scenegraph_root->addChild(truck_transform);
+  sceneTransform->addChild(truck_transform);
   truck_transform->addChild(truck);
 
   // Scale and translate models
   cessna_transform->postMult(osg::Matrix::scale(0.05, 0.05, 0.05));
-  cessna_transform->postMult(osg::Matrix::rotate(-M_PI*0.5,1,0,0));
+  //cessna_transform->postMult(osg::Matrix::rotate(-M_PI*0.5,1,0,0));
   cessna_transform->postMult(osg::Matrix::translate(-1,0,0));
 
   truck_transform->postMult(osg::Matrix::scale(0.05, 0.05, 0.05));
-  truck_transform->postMult(osg::Matrix::rotate(-M_PI*0.5,1,0,0));
+  //truck_transform->postMult(osg::Matrix::rotate(-M_PI*0.5,1,0,0));
   truck_transform->postMult(osg::Matrix::translate(1,0,0));
 
   std::string url = "urn:gramods:resources/sphere.osgt";

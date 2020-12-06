@@ -62,7 +62,7 @@
   <Controller>
 
     <TimeSamplePoseTracker>
-
+<!--
       <param name="time" value="0"/>
       <param name="position" value="0 0 2"/>
       <param name="orientation" value="ypr 0 0 0"/>
@@ -94,6 +94,24 @@
       <param name="time" value="20"/>
       <param name="position" value="0 0 2"/>
       <param name="orientation" value="ypr 0 0 0"/>
+-->
+
+      <param name="time" value="0"/>
+      <param name="position" value="0 0 2"/>
+      <param name="orientation" value="ypr 0 0 0"/>
+
+      <param name="time" value="2"/>
+      <param name="position" value="0 0 2"/>
+      <param name="orientation" value="ypr 0 0 0"/>
+
+
+      <param name="time" value="4"/>
+      <param name="position" value="3 0 2"/>
+      <param name="orientation" value="ypr 0 0 0"/>
+
+      <param name="time" value="6"/>
+      <param name="position" value="0 0 2"/>
+      <param name="orientation" value="ypr 0 0 0"/>
 
     </TimeSamplePoseTracker>
 
@@ -102,9 +120,13 @@
       <param name="time" value="0"/>
       <param name="buttons" value="0"/>
 
-      <param name="time" value="4"/>
+      <param name="time" value="1"/>
       <param name="buttons" value="1"/>
 
+      <param name="time" value="6"/>
+      <param name="buttons" value="0"/>
+
+<!--
       <param name="time" value="6"/>
       <param name="buttons" value="0"/>
 
@@ -113,6 +135,8 @@
 
       <param name="time" value="20"/>
       <param name="buttons" value="0"/>
+
+-->
 
     </TimeSampleButtonsTracker>
 

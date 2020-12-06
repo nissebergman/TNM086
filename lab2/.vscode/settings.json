@@ -25,6 +25,7 @@
         "transform": "cpp",
         "vec4": "cpp",
         "view": "cpp",
-        "ref_ptr": "cpp"
+        "ref_ptr": "cpp",
+        "string_view": "cpp"
     }
 }

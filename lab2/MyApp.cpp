@@ -38,9 +38,13 @@ osg::ref_ptr<osg::Node> truck;
 osg::ref_ptr<osg::Node> cessna;
 osg::ref_ptr<osg::Node> intersectedNode;
 osg::ref_ptr<osg::Geometry> geometry;
+osg::Vec3d head_start;
 osg::Vec3d wand_start;
 osg::Vec3d wand_end;
+osg::Vec3d wand_last_position;
 osg::ref_ptr<osg::MatrixTransform> sceneTransform;
+bool intersected;
+bool selected;
 
 class IntersectionCallback : public osg::NodeCallback {
   public:
@@ -54,29 +58,36 @@ class IntersectionCallback : public osg::NodeCallback {
 
       // För att komma åt > 1 objekt, använd nodepath. Task4 labb2.
 
-      osg::ref_ptr<osg::Material> mat = new osg::Material;
-      mat->setAmbient (osg::Material::FRONT_AND_BACK, osg::Vec4(1, 1, 0, 1.0));
-      mat->setDiffuse (osg::Material::FRONT_AND_BACK, osg::Vec4(1, 1, 0, 1.0));
+      osg::ref_ptr<osg::Material> intersectedMat = new osg::Material;
+      intersectedMat->setAmbient (osg::Material::FRONT_AND_BACK, osg::Vec4(1, 1, 0, 1.0));
+      intersectedMat->setDiffuse (osg::Material::FRONT_AND_BACK, osg::Vec4(1, 1, 0, 1.0));
+
+      osg::ref_ptr<osg::Material> selectedMat = new osg::Material;
+      selectedMat->setAmbient (osg::Material::FRONT_AND_BACK, osg::Vec4(0, 0, 1, 1.0));
+      selectedMat->setDiffuse (osg::Material::FRONT_AND_BACK, osg::Vec4(0, 0, 1, 1.0));
       
       if(intersector->containsIntersections()) {
         osgUtil::LineSegmentIntersector::Intersection intersectorInfo = intersector->getFirstIntersection();
         osg::NodePath nodePath = intersectorInfo.nodePath;
         for (osg::NodePath::iterator it = nodePath.begin(); it != nodePath.end();++it){
           if(*it == truck || *it == cessna){
+            intersected = true;
             intersectedNode = *it;
-            intersectedNode->getOrCreateStateSet()->setAttributeAndModes(mat, osg::StateAttribute::OVERRIDE);
           }
-        } 
-        //std::cout << "INTERSECT!";
+        }
+        if(intersected) intersectedNode->getOrCreateStateSet()->setAttributeAndModes(intersectedMat, osg::StateAttribute::OVERRIDE);
+
+        if(intersected && selected){
+          intersectedNode->getOrCreateStateSet()->setAttributeAndModes(selectedMat, osg::StateAttribute::OVERRIDE);
+          osg::ref_ptr<osg::MatrixTransform> modelTrans = intersectedNode->getParent(0)->asTransform()->asMatrixTransform();
+          modelTrans->postMult(osg::Matrix::translate(wand_end));
+        }
       }
       else if(!intersector->containsIntersections()){
         cessna->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
         truck->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
+        intersected = false;
       } 
-
-
-
-
 
       traverse(node, nodeVisit);
     
@@ -339,8 +350,8 @@ std::shared_ptr<gmGraphics::OsgRenderer> MyApp::Impl::getRenderer() {
 
 void MyApp::Impl::update_states(gmCore::Updateable::clock::time_point time) {
 
-  bool pointerMode = false;
-  bool crosshairMode = true;
+  bool pointerMode = true;
+  bool crosshairMode = false;
 
   if (!wand_transform)
     // Cannot update wand transform since we have no wand transform
@@ -362,7 +373,8 @@ void MyApp::Impl::update_states(gmCore::Updateable::clock::time_point time) {
   wand_transform->setMatrix(osg::Matrix::rotate(oQ) *
                             osg::Matrix::translate(oP));
 
-  osg::Vec3d head_start;
+  
+  wand_last_position = wand_start;
   head_start = oHP;
   wand_start = oP;
   wand_end = oQ * osg::Vec3d(0,0,-1);
@@ -370,20 +382,38 @@ void MyApp::Impl::update_states(gmCore::Updateable::clock::time_point time) {
   //std::cout<<"read/writeVec3d() ["<<wand_end<<"]"<<std::endl;
 
   double R = 0.4, G = 0.4, B = 0.4;
-  if (*sync_main_button) R = 0.8;
+  if (*sync_main_button){
+    R = 0.8;
+    selected = true;
+  }
+  else if(*sync_main_button) selected = false;
   if (*sync_second_button) G = 0.8;
   if (*sync_menu_button) B = 0.8;
   wand_material->setEmission(osg::Material::FRONT_AND_BACK, osg::Vec4(R, G, B, 1.0));
 
-  float speedFactor = 0.01;
+
+  float speed_factor;
+
+/*
+  // Deadzone, gives a bit of juttery navigation
+  if ((wand_last_position - wand_start).length() < 0.01){
+    speed_factor = 0;
+  }
+  */
+   
+    speed_factor = ((wand_last_position - wand_start).length());
+    int direction = ((wand_last_position - head_start).length() > (wand_start - head_start).length()) ? -1 : 1;
+    speed_factor *= direction;
+  
+
 
   if (pointerMode){
-    sceneTransform->postMult(osg::Matrix::translate(-wand_end*speedFactor));
+    sceneTransform->postMult(osg::Matrix::translate(-wand_end*speed_factor));
   }
   if (crosshairMode){
     osg::Vec3d crosshair = (head_start - wand_start);
     crosshair.normalize();
-    sceneTransform->postMult(osg::Matrix::translate(-crosshair*speedFactor));
+    sceneTransform->postMult(osg::Matrix::translate(-crosshair*speed_factor));
   } 
 
   scenegraph_root->setUpdateCallback(new IntersectionCallback);

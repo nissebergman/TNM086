@@ -56,7 +56,7 @@
 
   <TimeSamplePoseTracker
       AS="head"
-      position="0 0 2.5"
+      position="0 0 4"
       orientation="ypr 0 0 0"/>
 
   <Controller>
@@ -103,16 +103,40 @@
       <param name="time" value="2"/>
       <param name="position" value="0 0 2"/>
       <param name="orientation" value="ypr 0 0 0"/>
-
-
+      
       <param name="time" value="4"/>
-      <param name="position" value="3 0 2"/>
+      <param name="position" value="0 0 3"/>
+      <param name="orientation" value="ypr 0 0 0"/>
+    
+      <param name="time" value="10"/>
+      <param name="position" value="0 0 2"/>
+      <param name="orientation" value="ypr 0 0 0"/>
+<!--  
+      <param name="time" value="8"/>
+      <param name="position" value="0 0 4"/>
       <param name="orientation" value="ypr 0 0 0"/>
 
-      <param name="time" value="6"/>
+      <param name="time" value="10"/>
+      <param name="position" value="0 0 0"/>
+      <param name="orientation" value="ypr 0 0 0"/>
+-->
+<!--
+      <param name="time" value="4"/>
       <param name="position" value="0 0 2"/>
       <param name="orientation" value="ypr 0 0 0"/>
 
+      <param name="time" value="6"/>
+      <param name="position" value="-2 0 2"/>
+      <param name="orientation" value="ypr 0 0 0"/>
+
+      <param name="time" value="8"/>
+      <param name="position" value="0 0 2"/>
+      <param name="orientation" value="ypr 0 0 0"/>
+
+      <param name="time" value="10"/>
+      <param name="position" value="0 -1 2"/>
+      <param name="orientation" value="ypr 0 0 0"/>
+-->
     </TimeSamplePoseTracker>
 
     <TimeSampleButtonsTracker>
@@ -120,13 +144,16 @@
       <param name="time" value="0"/>
       <param name="buttons" value="0"/>
 
-      <param name="time" value="1"/>
-      <param name="buttons" value="1"/>
+      <param name="time" value="4"/>
+      <param name="buttons" value="2"/>
 
+      <param name="time" value="10"/>
+      <param name="buttons" value="0"/>
+<!--
       <param name="time" value="6"/>
       <param name="buttons" value="0"/>
 
-<!--
+
       <param name="time" value="6"/>
       <param name="buttons" value="0"/>
 

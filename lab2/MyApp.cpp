@@ -38,19 +38,22 @@ osg::ref_ptr<osg::Node> truck;
 osg::ref_ptr<osg::Node> cessna;
 osg::ref_ptr<osg::Node> intersectedNode;
 osg::ref_ptr<osg::Geometry> geometry;
-osg::Vec3d head_start;
-osg::Vec3d wand_start;
+osg::Vec3d head_pos;
+osg::Vec3d wand_pos;
 osg::Vec3d wand_end;
-osg::Vec3d wand_last_position;
+osg::Vec3d wand_static_position;
 osg::ref_ptr<osg::MatrixTransform> sceneTransform;
 bool intersected;
 bool selected;
+bool moving;
+bool initMovement;
+int direction;
 
 class IntersectionCallback : public osg::NodeCallback {
   public:
     virtual void operator() ( osg::Node* node, osg::NodeVisitor* nodeVisit ) {
       osg::ref_ptr<osgUtil::LineSegmentIntersector> intersector = 
-      new osgUtil::LineSegmentIntersector(wand_start, wand_end);
+      new osgUtil::LineSegmentIntersector(wand_pos, wand_end);
 
       osgUtil::IntersectionVisitor visitor;
       visitor.setIntersector(intersector);
@@ -73,15 +76,17 @@ class IntersectionCallback : public osg::NodeCallback {
           if(*it == truck || *it == cessna){
             intersected = true;
             intersectedNode = *it;
-          }
+          } 
         }
+        //if ()
         if(intersected) intersectedNode->getOrCreateStateSet()->setAttributeAndModes(intersectedMat, osg::StateAttribute::OVERRIDE);
-
+/*
         if(intersected && selected){
           intersectedNode->getOrCreateStateSet()->setAttributeAndModes(selectedMat, osg::StateAttribute::OVERRIDE);
           osg::ref_ptr<osg::MatrixTransform> modelTrans = intersectedNode->getParent(0)->asTransform()->asMatrixTransform();
           modelTrans->postMult(osg::Matrix::translate(wand_end));
         }
+  */
       }
       else if(!intersector->containsIntersections()){
         cessna->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
@@ -325,7 +330,7 @@ void MyApp::Impl::update_data(gmCore::Updateable::clock::time_point time) {
       *sync_main_button = buttons.buttons[ButtonIdx::MAIN];
     else
       *sync_main_button = false;
-
+      
     if (buttons.buttons.count(ButtonIdx::SECONDARY))
       *sync_second_button = buttons.buttons[ButtonIdx::SECONDARY];
     else
@@ -373,11 +378,16 @@ void MyApp::Impl::update_states(gmCore::Updateable::clock::time_point time) {
   wand_transform->setMatrix(osg::Matrix::rotate(oQ) *
                             osg::Matrix::translate(oP));
 
-  
-  wand_last_position = wand_start;
-  head_start = oHP;
-  wand_start = oP;
-  wand_end = oQ * osg::Vec3d(0,0,-1);
+
+
+  head_pos = oHP;
+  wand_pos = oP;
+  wand_end = oP + oQ * osg::Vec3d(0,0,-1000);
+
+   if (!initMovement){
+    wand_static_position = wand_pos;
+    initMovement = true;
+  } 
 
   //std::cout<<"read/writeVec3d() ["<<wand_end<<"]"<<std::endl;
 
@@ -387,7 +397,11 @@ void MyApp::Impl::update_states(gmCore::Updateable::clock::time_point time) {
     selected = true;
   }
   else if(*sync_main_button) selected = false;
-  if (*sync_second_button) G = 0.8;
+  if (*sync_second_button){
+    G = 0.8; 
+
+  } 
+  else if(*sync_second_button)
   if (*sync_menu_button) B = 0.8;
   wand_material->setEmission(osg::Material::FRONT_AND_BACK, osg::Vec4(R, G, B, 1.0));
 
@@ -396,33 +410,49 @@ void MyApp::Impl::update_states(gmCore::Updateable::clock::time_point time) {
 
 /*
   // Deadzone, gives a bit of juttery navigation
-  if ((wand_last_position - wand_start).length() < 0.01){
+  if ((wand_last_position - wand_pos).length() < 0.01){
     speed_factor = 0;
   }
   */
    
-    speed_factor = ((wand_last_position - wand_start).length());
-    int direction = ((wand_last_position - head_start).length() > (wand_start - head_start).length()) ? -1 : 1;
-    speed_factor *= direction;
+    //speed_factor = ((wand_last_position - wand_pos).length()); //Some kind of acceleration, perhaps not ideal #cybersickness..
+    speed_factor = 0.05;
+    //int direction = ((wand_last_position - head_pos).length() > (wand_pos - head_pos).length()) ? -1 : 1;
+    //speed_factor *= direction;
   
+  //moving = (wand_static_position - wand_pos).length() > 0.2 ? true : false;
+
+  // Moving the camera by reading wand position
+  if (((wand_static_position - wand_pos).length()) > 0.1){
+    direction = ((wand_static_position - head_pos).length() > (wand_pos - head_pos).length()) ? -1 : 1;
+    //direction = (wand_static_position * head_pos) < (wand_pos * head_pos) ? -1 : 1; 
+    speed_factor*=(wand_pos - head_pos).length();
+    moving = true;
+  }
+  else (moving = false);
 
 
   if (pointerMode){
-    sceneTransform->postMult(osg::Matrix::translate(-wand_end*speed_factor));
+    if (moving){ 
+      sceneTransform->postMult(osg::Matrix::translate((oQ*osg::Vec3d(0,0,-1))*-direction*speed_factor));
+      }
   }
   if (crosshairMode){
-    osg::Vec3d crosshair = (head_start - wand_start);
-    crosshair.normalize();
-    sceneTransform->postMult(osg::Matrix::translate(-crosshair*speed_factor));
+    if (moving){ 
+      osg::Vec3d crosshair = (head_pos - wand_pos);
+      crosshair.normalize();
+      sceneTransform->postMult(osg::Matrix::translate(-crosshair*-direction*speed_factor));
+    } 
   } 
-
-  scenegraph_root->setUpdateCallback(new IntersectionCallback);
-
 }
+
 
 void MyApp::Impl::initOSG() {
 
   osg_renderer->setSceneData(scenegraph_root);
+  scenegraph_root->setUpdateCallback(new IntersectionCallback);
+  moving = false;
+  initMovement = false;
 
   if (wand) {
     // We just have to assume that if a replica should render a wand,
@@ -430,7 +460,6 @@ void MyApp::Impl::initOSG() {
     // will have a wand defined in their config, even if its data are
     // not used. How can we otherwise know if we should render a wand
     // or not?
-    scenegraph_root->addChild(wand_transform);
     osg::ref_ptr<osg::Node> wand_node = createWand();
     wand_transform->addChild(wand_node);
     scenegraph_root->addChild(wand_transform);

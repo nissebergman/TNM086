@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+Copyright 2013, 2017, Karljohan Lundin Palmerius
+
+This is a stubb for laborations on multi-modal display
+systems in the VR laboratory. It will disable the X3D
+navigation to allow for viewpoint calibration and tracking,
+and load libraries commonly used in the VR laboratory.
+
+-->
+
+
+<Group>
+  
+  <PythonScript url="urn:candy:python/CorrectViewpoint.py"/>
+  <PythonScript url="urn:candy:python/AutoLoadSO.py"/>
+  
+  <!-- Put your code here -->
+
+
+  	<!-- Exercise 2 
+	Skapar flera viewpoints för att demonstrera basic symmetric frustum.
+	Demonstrerar att vrida sig runt objekten och att skärmen också vrider sig för att matcha
+	åskådarens förflyttning.
+
+ 	<Viewpoint position="0 0 0.6"/>
+ 	<Viewpoint 
+ 		position="0 0.2 0.6"
+ 		orientation='1 0 0 -0.7'/>
+ 	<Viewpoint position="0 0 0.6"/>
+ 	<Viewpoint 
+ 		position="0.2 0 0.6"
+ 		orientation='0 1 0 0.7'/>
+ 	<Viewpoint 
+ 		position="-0.2 0 0.6"
+ 		orientation='0 1 0 -0.7'/>
+	-->
+
+
+	<!-- Exercise 3 
+	Skewed frustum viewpoint demonstrerar istället att röra sig runt objekten på skärmen
+	men att skärmen inte roterar.
+	<SMViewpoint
+		screenLowerLeft='-0.25 -0.15 0'
+		screenUpperRight='0.25 0.15 0'
+		position='0 0.1 1.0'/>
+	<SMViewpoint
+		screenLowerLeft='-0.25 -0.15 0'
+		screenUpperRight='0.25 0.15 0'
+		position='0.5 0.1 1.0'/>
+	-->
+
+	<!-- Exercise 5 and 6
+	Behöver testa dessa var och en enskilt i VR-studion. -->
+	<!--<Inline url="urn:candy:x3d/view-untracked-stereo.x3d"/>-->
+	<!--<Inline url="urn:candy:x3d/view-untracked-mono.x3d"/>-->
+	<!--<Inline url="urn:candy:x3d/view-head-tracked-stereo.x3d"/>-->
+	<!--<Inline url="urn:candy:x3d/view-head-tracked-mono.x3d"/>-->
+
+	<NavigationInfo headlight='false'/>
+	
+	<DirectionalLight 
+		direction='-0.5 -1 -0.5'
+		ambientIntensity='0.2'
+		color='1 1 1'
+		global='true'
+		on='true'
+		intensity='2'/>
+	
+	<PointLight
+		location='0 0.4 -0.1'
+		ambientIntensity='0.5'
+		color='1 1 1'
+		global='true'
+		on='true'
+		intensity='2'/>
+
+	<!-- Exercise 4 
+	Manuell navigation.
+	-->
+	<MatrixTransform
+		DEF='TR'>
+
+		<!-- Exercise 1 -->
+	 	<Transform translation='0 -0.5 0'>
+
+		    <Transform translation='0.2 0 0.2'>
+		    	<Shape>
+		      		<Appearance shadow='true'>
+		      			<Material DEF="legColor" diffuseColor='0.4 0.2 0'/>
+
+		      		</Appearance>
+		      		<Box DEF="Leg" size='0.05 0.5 0.05' solid='true'/>
+		      	</Shape>
+		  	</Transform>
+
+		  	<Transform translation='-0.2 0 0.2'>
+		    	<Shape>
+		      		<Appearance shadow='true'>
+		      			<Material USE="legColor"/>
+		      		</Appearance>
+		      		<Box USE="Leg"/>
+		      	</Shape>
+		  	</Transform>
+
+		  	<Transform translation='0.2 0 -0.2'>
+		    	<Shape>
+		      		<Appearance shadow='true'>
+		      			<Material USE="legColor"/>
+		      		</Appearance>
+		      		<Box USE="Leg"/>
+		      	</Shape>
+		  	</Transform>
+
+		  	<Transform translation='-0.2 0 -0.2'>
+		    	<Shape>
+		      		<Appearance shadow='true'>
+		      			<Material USE="legColor"/>
+		      		</Appearance>
+		      		<Box USE="Leg"/>
+		      	</Shape>
+		  	</Transform>
+
+		  	<Transform translation='0 0.25 0'>
+		    	<Shape>
+		      		<Appearance shadow='true'>
+		      			<Material DEF="seatColor" diffuseColor='0.4 0.2 0'/>
+                    	<SmoothSurface/>
+		      		</Appearance>
+		      		<Box DEF="Seat" size='0.5 0.03 0.5' solid='true'/>
+		      	</Shape>
+		  	</Transform>
+
+		  	<Transform translation='0 0.635 -0.25'>
+		    	<Shape>
+		      		<Appearance shadow='true'>
+		      			<Material DEF="backColor" diffuseColor='0.4 0.2 0'/>
+		      		</Appearance>
+		      		<Box DEF="Back" size='0.5 0.8 0.03' solid='true'/>
+		      	</Shape>
+		  	</Transform>
+
+		  	<Transform translation='0 0.5 0'>
+		      	<Shape>
+		        	<Appearance shadow='true'>
+		          		<Material DEF="sphereColor" diffuseColor='0.3 0.3 0.9'/>
+		          		<!-- Exercise 9 - 11 
+						stiffness är hur mjukt/hårt materialet är. Ett högt värde gör att pennan inte kan skunka in i föremålet lätt (max 1500).
+						damping är hur mjuk/hard ytan är. Med hög damping och låg stiffness är det som att trycka på ett mjukt föremål med hårt skal.
+		          		-->
+                     	<HapticTexturesSurface
+                     		useRelativeValues='false' 
+				            stiffness='500'
+				            damping='5' 
+				            staticFriction='1'
+				            dynamicFriction='1'>
+        				</HapticTexturesSurface>
+		        	</Appearance>
+		        	<Sphere DEF="MySphere" radius="0.1" solid='true'/>
+		      	</Shape>
+		    </Transform>
+
+		    <!-- Exercise 12 -->
+		    <Transform translation='0.2 0.275 0'>
+		      	<Shape>
+		        	<Appearance shadow='true'>
+		        		<ImageTexture DEF='I1' url='metal_texture.jpg'/>
+		          		<Material
+		          			diffuseColor='0.2 0.2 0.2'
+		          			shininess='1'
+		          			specularColor='1 1 1'/>
+                     	<HapticTexturesSurface
+                     		useRelativeValues='false' 
+				            stiffness='1500'
+				            damping='0' 
+				            staticFriction='0.1'
+				            dynamicFriction='0.05'>
+        				</HapticTexturesSurface>
+		        	</Appearance>
+		        	<Box DEF="haptic1" size='0.1 0.03 0.1' solid='true'/>
+		      	</Shape>
+		    </Transform>
+
+		    <Transform translation='0 0.275 0'>
+		      	<Shape>
+		        	<Appearance shadow='true'>
+		          		<ImageTexture DEF='I2' url='wall_texture.jpg'/>
+                     	<DepthMapSurface
+                     		useRelativeValues='false'
+                     		maxDepth='0.003'
+                     		whiteIsOut='false'
+                     		stiffness='1200'
+                     		damping='3'>
+                     		<ImageTexture USE='I2' containerField='depthMap'/>
+                     	</DepthMapSurface>
+		        	</Appearance>
+		        	<Box DEF="haptic2" size='0.1 0.03 0.1' solid='true'/>
+		      	</Shape>
+		    </Transform>
+
+		    <Transform translation='-0.2 0.275 0'>
+		      	<Shape>
+		        	<Appearance shadow='true'>
+		        		<ImageTexture DEF='I3' url='sponge_texture.jpg'/>
+		          		<Material specularColor='0.3 0.3 0.3' shininess='0.4'/>
+                     	<!--
+                     	<HapticTexturesSurface
+                     		useRelativeValues='false' 
+				            stiffness='100'
+				            damping='0.5' 
+				            staticFriction='0.8'
+				            dynamicFriction='0.4'>
+        				</HapticTexturesSurface>
+        				-->
+        				<DepthMapSurface
+                     		useRelativeValues='false'
+                     		maxDepth='0.01'
+                     		whiteIsOut='true'
+                     		stiffness='80'
+                     		damping='0.1'
+                     		staticFriction='0.2'
+				            dynamicFriction='0.1'>
+                     		<ImageTexture
+                     			url='sponge_bump.png'
+                     			containerField='depthMap'/>
+                     	</DepthMapSurface>
+		        	</Appearance>
+		        	<Box DEF="haptic3" size='0.1 0.03 0.1' solid='true'/>
+		      	</Shape>
+		    </Transform>
+
+		    <!-- Exercise 5 and 7-->
+		    <Transform translation='0 -0.25 0'>
+		      	<Shape>
+		        	<Appearance shadow='true'>
+		          		<Material DEF="floorColor" diffuseColor='0.1 0.1 0.1'/>
+		        	</Appearance>
+		        	<Box DEF="Floor" size='10 0.02 10' solid='true'/>
+		      	</Shape>
+		    </Transform>
+
+		    <Transform translation='-0.7 0 -1'>
+		      	<Shape>
+		        	<Appearance shadow='true'>
+		          		<ImageTexture url='box_texture.jpg'/>
+		        	</Appearance>
+		        	<Box DEF="bgBox" size='0.5 0.5 0.5' solid='true'/>
+		      	</Shape>
+		    </Transform>
+
+		</Transform>
+	</MatrixTransform>
+
+	<!-- Exercise 4 -->
+	<IMPORT inlineDEF="H3D_EXPORTS" exportedDEF="HDEV" AS="HDEV"/>
+
+        <PythonScript DEF="MT" url="urn:candy:python/ManualTranslation.py">
+            <Transform USE="TR" containerField="references"/>
+        </PythonScript>
+ 
+  	<PythonScript DEF="MZ" url="urn:candy:python/ManualZoom.py">
+            <Transform USE="TR" containerField="references"/>
+  	</PythonScript>
+ 
+  	<PythonScript DEF="MR" url="urn:candy:python/ManualRotation.py">
+            <Transform USE="TR" containerField="references"/>
+	</PythonScript>
+	 
+
+	<ROUTE fromNode="HDEV" fromField="mainButton"
+	         toNode="MT" toField="button"/>
+	<ROUTE fromNode="HDEV" fromField="trackerPosition"
+	         toNode="MT" toField="position"/>
+	<ROUTE fromNode="HDEV" fromField="mainButton"
+	         toNode="MZ" toField="button"/>
+	<ROUTE fromNode="HDEV" fromField="trackerPosition"
+	         toNode="MZ" toField="position"/>
+	<ROUTE fromNode="HDEV" fromField="trackerOrientation"
+	         toNode="MZ" toField="orientation"/>
+	<ROUTE fromNode="HDEV" fromField="mainButton"
+	         toNode="MR" toField="button"/>
+	<ROUTE fromNode="HDEV" fromField="trackerPosition"
+	         toNode="MR" toField="position"/>
+	<ROUTE fromNode="HDEV" fromField="trackerOrientation"
+	         toNode="MR" toField="orientation"/>
+
+ 
+	<!-- Exercise 13, 14 and 15-->
+
+	<PythonScript DEF="MFtoSF" url="urn:candy:python/MFtoSFBool.py"/>
+        <PythonScript DEF="MFtoSF2" url="urn:candy:python/MFtoSFBool.py"/>
+        <PythonScript url="urn:candy:python/AutoLoadSO.py"/>
+        <TimeTrigger DEF='TT'/>
+        <TimeTrigger DEF='TT2'/>
+        <BooleanFilter DEF='BF'/>
+        <BooleanFilter DEF='BF2'/>
+
+
+        <VRSound intensity="1" DEF="soundSphere" spatialize='true'>
+            <AudioClip DEF="soundSphere" url="wowc.wav"/>
+            <ReverbSoundEffect parametersPreset='DOME_SAINTPAULS'/>
+        </VRSound>
+        <VRSound intensity="1" DEF="soundSeat" spatialize='true'>
+            <AudioClip DEF="soundSeat" url="wowb.wav"/>
+        </VRSound>
+        
+        <VRSound intensity="1" location='5 0.6 -5' spatialize='true'>
+            <AudioClip url="./sound/334__anton__keys-ringing.wav" loop='true'/>
+        </VRSound>
+        <VRSound intensity="1" location='0 5 0' spatialize='true'>
+            <AudioClip url="./sound/347__anton__man-cleaning-nose.wav" loop='true'/>
+            <ReverbSoundEffect parametersPreset='MOOD_HELL'/>
+        </VRSound>
+    
+        <ROUTE fromNode="MySphere" fromField="isTouched"
+	         toNode="MFtoSF" toField="value"/>
+        <ROUTE fromNode="MFtoSF" fromField="value"
+	         toNode="BF" toField="set_boolean"/>
+        <ROUTE fromNode="BF" fromField="inputTrue"
+	         toNode="TT" toField="set_boolean"/>
+        <ROUTE fromNode="TT" fromField="triggerTime"
+	         toNode="soundSphere" toField="startTime"/>
+        
+        <ROUTE fromNode="Seat" fromField="isTouched"
+	         toNode="MFtoSF2" toField="value"/>
+        <ROUTE fromNode="MFtoSF2" fromField="value"
+	         toNode="BF2" toField="set_boolean"/>
+        <ROUTE fromNode="BF2" fromField="inputTrue"
+	         toNode="TT2" toField="set_boolean"/>
+        <ROUTE fromNode="TT2" fromField="triggerTime"
+	         toNode="soundSeat" toField="startTime"/>
+        
+    
+
+</Group>
